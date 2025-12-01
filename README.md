@@ -174,5 +174,5 @@ This repository showcases:
 - Application Code: [github.com/AaronWhiteTX/plateai](https://github.com/AaronWhiteTX/plateai)
 - Deployment Guide: [DEPLOYMENT.md](https://github.com/AaronWhiteTX/plateai/blob/main/DEPLOYMENT.md)
 
-**Last Updated**: November 30, 2024  
+**Last Updated**: November 30, 2025
 **Status**: Production-Ready
