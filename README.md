@@ -51,6 +51,8 @@ This repository contains Terraform configuration for 26 AWS resources that power
   - AmazonBedrockFullAccess (AI model access)
 - **CloudWatch Log Group**: Lambda function logs (7-day retention)
 
+**Note on IAM Permissions**: This portfolio project uses AWS managed policies (FullAccess) for rapid prototyping. Production deployment would require custom policies with least-privilege access scoped to specific resources (e.g., DynamoDB actions limited to the 5 application tables, S3 access restricted to the two application buckets).
+
 ---
 
 ## Key Features
@@ -157,6 +159,31 @@ Result: Zero residual cost, all resources deleted.
 
 ---
 
+## Production Improvements
+
+For enterprise deployment, the following enhancements are recommended:
+
+### Security
+- Replace AWS managed FullAccess policies with custom least-privilege IAM policies
+- Implement resource-level permissions (specific DynamoDB tables, S3 buckets)
+- Add KMS encryption for data at rest
+- Enable CloudTrail for audit logging
+- Implement WAF rules for API Gateway
+
+### Reliability
+- Multi-region deployment for disaster recovery
+- DynamoDB global tables for cross-region replication
+- Lambda reserved concurrency limits
+- CloudWatch alarms for error rates and latency
+
+### Operations
+- Remote state backend (S3 + DynamoDB state locking)
+- Terraform workspaces for dev/staging/prod environments
+- CI/CD pipeline integration (GitHub Actions, AWS CodePipeline)
+- Automated testing with Terratest
+
+---
+
 ## Technical Demonstrations
 
 This repository showcases:
@@ -175,4 +202,4 @@ This repository showcases:
 - Deployment Guide: [DEPLOYMENT.md](https://github.com/AaronWhiteTX/plateai/blob/main/DEPLOYMENT.md)
 
 **Last Updated**: November 30, 2024  
-**Status**: Production-Ready
+**Status**: Production-Ready (Portfolio Demonstration)
