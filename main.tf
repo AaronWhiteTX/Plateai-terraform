@@ -1,4 +1,10 @@
 terraform {
+  backend "s3" {
+    bucket = "plateai-terraform-state"
+    key    = "terraform.tfstate"
+    region = "us-east-1"
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -10,6 +16,7 @@ terraform {
 provider "aws" {
   region = "us-east-1"
 }
+
 
 # Lambda Function
 resource "aws_lambda_function" "plateai" {
