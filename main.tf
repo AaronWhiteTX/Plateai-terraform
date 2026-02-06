@@ -26,11 +26,14 @@ resource "aws_lambda_function" "plateai" {
   timeout       = 30
   memory_size   = 128
 
+  s3_bucket = "foodidentifier-730980070158-photos"
+  s3_key    = "lambda-placeholder.zip"
+
   lifecycle {
     ignore_changes = [
-      filename,
-      source_code_hash,
-      last_modified
+      s3_bucket,
+      s3_key,
+      source_code_hash
     ]
   }
 
