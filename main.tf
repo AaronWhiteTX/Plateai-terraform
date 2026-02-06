@@ -307,9 +307,16 @@ resource "aws_cloudfront_distribution" "plateai" {
   viewer_certificate {
     acm_certificate_arn      = aws_acm_certificate.plateai.arn
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.3_2025"
+    minimum_protocol_version = "TLSv1.2_2021"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      viewer_certificate
+    ]
   }
 }
+
 
 # ACM Certificate
 resource "aws_acm_certificate" "plateai" {
