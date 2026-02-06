@@ -1,9 +1,12 @@
+
 # PlateAI Infrastructure (Terraform)
 
 Infrastructure as Code for PlateAI - complete AWS serverless stack managed with Terraform.
 
-**Live Application:** [plateai.cloud](https://plateai.cloud)  
+**Live Application:** [plateai.cloud](https://plateai.cloud)
 **Main Repository:** [github.com/AaronWhiteTX/PlateAI](https://github.com/AaronWhiteTX/PlateAI)
+
+![Terraform CI/CD](https://github.com/AaronWhiteTX/Plateai-terraform/actions/workflows/ci.yml/badge.svg)
 
 ---
 
@@ -29,28 +32,48 @@ Infrastructure as Code for PlateAI - complete AWS serverless stack managed with 
 
 ---
 
+## CI/CD Pipeline
+
+This repository includes a full CI/CD pipeline using GitHub Actions:
+
+| Trigger | What Happens |
+|---------|--------------|
+| Push to main | fmt check, validate, plan, apply |
+| Pull request | fmt check, validate, plan (no apply) |
+
+**Pipeline Steps:**
+- terraform fmt -check: Validates code formatting
+- terraform validate: Checks syntax
+- terraform plan: Previews changes
+- terraform apply: Deploys to production (main branch only)
+
+**State Management:**
+- Remote state stored in S3
+- Enables safe CI/CD deployments
+- Single source of truth for infrastructure state
+
+---
+
 ## Quick Start
+
 ```bash
 git clone https://github.com/AaronWhiteTX/Plateai-terraform.git
 cd Plateai-terraform
-
-# Update bucket names in main.tf to be globally unique
-# Replace: foodidentifier-730980070158-photos
-# Replace: plateai-frontend-730980070158
-
 terraform init
 terraform plan
 terraform apply
-
-# Complete teardown (zero residual cost)
-terraform destroy
 ```
+
+Update bucket names in main.tf to be globally unique before applying.
 
 ---
 
 ## Import from Production
 
-This infrastructure was imported from the live PlateAI environment with zero downtime:
+This infrastructure was imported from the live PlateAI environment with zero downtime.
+
+Example import commands used:
+
 ```bash
 terraform import aws_lambda_function.food_processor FoodIdentifierProcessor
 terraform import aws_dynamodb_table.users users
@@ -62,107 +85,111 @@ terraform import aws_s3_bucket.photos foodidentifier-730980070158-photos
 terraform import aws_s3_bucket.frontend plateai-frontend-730980070158
 terraform import aws_api_gateway_rest_api.api s8w5yfkidb
 terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
-# ... (26 resources total)
 ```
 
-**State Management:**
-```bash
-terraform plan
-# Shows 26 resources under management
-# Infrastructure imported from production environment
-# Intentionally not applying updates to preserve production stability
-```
-
-This confirms complete state alignment between Terraform and production AWS environment.
+26 resources total. Complete state alignment between Terraform and production AWS environment.
 
 ---
 
 ## Key Features
 
+**CI/CD Pipeline**
+- Automated validation on every push
+- Infrastructure deploys automatically on merge to main
+- Pull requests run plan without applying
+- Remote state in S3 for safe deployments
+
 **Infrastructure as Code**
 - 100% of PlateAI infrastructure defined in Terraform HCL
-- Reproducible deployment with one command: `terraform apply`
-- Complete teardown capability: `terraform destroy` (zero residual cost)
+- Reproducible deployment with one command
+- Complete teardown capability with terraform destroy
 - Version-controlled infrastructure changes via Git
 
 **Import Workflow**
 - All 26 resources imported from running production application
 - Zero downtime during import process
-- No infrastructure changes applied during import
 - Demonstrates ability to bring existing cloud resources under IaC management
 
 **Cost Optimization**
 - Resources selected for $1-3/month operation
-- On-demand pricing: DynamoDB, Lambda, Bedrock (pay per use)
-- Lambda right-sized: 128MB memory (75% savings vs default 512MB)
+- On-demand pricing: DynamoDB, Lambda, Bedrock
+- Lambda right-sized: 128MB memory
 - DynamoDB TTL: Automatic cleanup of 90-day-old conversation data
-- Complete infrastructure cleanup via single destroy command
 
 ---
 
 ## Repository Structure
+
 ```
 .
-├── main.tf                 # Complete infrastructure definition (26 resources)
-├── terraform.tfstate       # Current state (tracks live AWS environment)
-├── .terraform.lock.hcl     # Terraform provider version lock
-├── .gitignore              # Excludes .terraform/, build artifacts
-├── deploy.sh               # Automated Lambda packaging and deployment
-└── README.md               # This file
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+├── main.tf
+├── .terraform.lock.hcl
+├── .gitignore
+├── deploy.sh
+└── README.md
 ```
 
 ---
 
 ## What This Demonstrates
 
+**CI/CD and DevOps**
+- Full CI/CD pipeline with GitHub Actions
+- Automated infrastructure deployment on merge
+- Remote state management with S3
+- Safe PR workflow with plan only
+
 **Terraform Expertise**
-- Multi-service AWS infrastructure definition (Lambda, DynamoDB, S3, API Gateway, CloudFront, IAM)
+- Multi-service AWS infrastructure definition
 - Resource import from existing production environments
 - State management for live systems
-- Zero-drift configuration (code matches production exactly)
+- Zero-drift configuration
 
 **Cloud Architecture**
-- Serverless architecture design (26 resources across 8 AWS services)
+- Serverless architecture design across 8 AWS services
 - Cost-aware resource selection and sizing
-- Security configuration (IAM roles, CloudWatch logging)
+- Security configuration with IAM roles
 - CDN and custom domain setup
-
-**DevOps Practices**
-- Infrastructure as Code with Terraform
-- Reproducible deployments
-- Automated provisioning and teardown
-- Separation of infrastructure code from application code
 
 ---
 
-## Production Improvements
-
-For enterprise deployment, consider these enhancements:
+## Future Improvements
 
 **Security**
 - Replace AWS managed FullAccess policies with least-privilege custom policies
-- Implement resource-specific IAM permissions (limit to 5 DynamoDB tables, 2 S3 buckets)
 - Add KMS encryption for data at rest
 - Enable AWS WAF for API Gateway protection
 
 **Operations**
-- Remote state backend (S3 + DynamoDB state locking)
+- DynamoDB state locking for team collaboration
 - Terraform workspaces for dev/staging/prod environments
-- CI/CD pipeline integration (GitHub Actions)
 - Automated testing with Terratest
 
 **Reliability**
 - Multi-region deployment for disaster recovery
 - CloudWatch alarms for error rates and latency
-- Lambda reserved concurrency limits
 - DynamoDB PITR for backup and restore
 
 ---
 
 **Related Repositories:**
 - Application Code: [github.com/AaronWhiteTX/PlateAI](https://github.com/AaronWhiteTX/PlateAI)
-- Architecture & Features: See main repository README
 
-**Last Updated:** November 30, 2025
-**Status:** Production-Ready (manages live plateai.cloud infrastructure)
+**Last Updated:** February 2026
+**Status:** Production-Ready
+```
 
+---
+
+## What I Fixed
+
+| Issue | Fix |
+|-------|-----|
+| Bash code block bleeding | Closed code blocks properly |
+| Simplified formatting | Removed nested backticks |
+| Cleaner structure | Less clutter |
+
+---
