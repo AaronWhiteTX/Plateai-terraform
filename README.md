@@ -1,5 +1,4 @@
-
-# PlateAI Infrastructure (Terraform)
+PlateAI Infrastructure (Terraform)
 
 Infrastructure as Code for PlateAI - complete AWS serverless stack managed with Terraform.
 
@@ -16,16 +15,16 @@ Infrastructure as Code for PlateAI - complete AWS serverless stack managed with 
 
 **Compute & API**
 - Lambda: FoodIdentifierProcessor (Python 3.12, 128MB, 30s timeout)
-- API Gateway: FoodIdentifierAPI (s8w5yfkidb) with Lambda proxy integration
+- API Gateway: FoodIdentifierAPI with Lambda proxy integration
 - IAM Role: FoodIdentifierAppRole with DynamoDB, S3, Bedrock permissions
-- CloudWatch Log Group: /aws/lambda/FoodIdentifierProcessor (7-day retention)
+- CloudWatch Log Group: /aws/lambda/FoodIdentifierProcessor
 
 **Storage**
 - DynamoDB tables (5): users, meals, recipes, dailyPlans, conversations (90-day TTL)
-- S3 buckets (2): foodidentifier-730980070158-photos, plateai-frontend-730980070158
+- S3 buckets (2): foodidentifier photos, plateai frontend
 
 **CDN & Security**
-- CloudFront: d1ws39rn0mdavv.cloudfront.net (global CDN)
+- CloudFront distribution (global CDN)
 - ACM certificate: SSL/TLS for plateai.cloud
 
 **See the [main PlateAI repository](https://github.com/AaronWhiteTX/PlateAI) for architecture diagrams, feature details, and usage documentation.**
@@ -34,12 +33,28 @@ Infrastructure as Code for PlateAI - complete AWS serverless stack managed with 
 
 ## CI/CD Pipeline
 
-This repository includes a full CI/CD pipeline using GitHub Actions:
+Full CI/CD pipeline using GitHub Actions:
 
-| Trigger | What Happens |
-|---------|--------------|
-| Push to main | fmt check, validate, plan, apply |
-| Pull request | fmt check, validate, plan (no apply) |
+|
+ Trigger 
+|
+ What Happens 
+|
+|
+---------
+|
+--------------
+|
+|
+ Push to main 
+|
+ fmt check, validate, plan, apply 
+|
+|
+ Pull request 
+|
+ fmt check, validate, plan (no apply) 
+|
 
 **Pipeline Steps:**
 - terraform fmt -check: Validates code formatting
@@ -48,7 +63,7 @@ This repository includes a full CI/CD pipeline using GitHub Actions:
 - terraform apply: Deploys to production (main branch only)
 
 **State Management:**
-- Remote state stored in S3
+- Remote state stored in S3 (plateai-terraform-state bucket)
 - Enables safe CI/CD deployments
 - Single source of truth for infrastructure state
 
@@ -56,13 +71,16 @@ This repository includes a full CI/CD pipeline using GitHub Actions:
 
 ## Quick Start
 
-```bash
-git clone https://github.com/AaronWhiteTX/Plateai-terraform.git
-cd Plateai-terraform
-terraform init
-terraform plan
-terraform apply
-```
+Clone the repo:
+
+    git clone https://github.com/AaronWhiteTX/Plateai-terraform.git
+    cd Plateai-terraform
+
+Initialize and deploy:
+
+    terraform init
+    terraform plan
+    terraform apply
 
 Update bucket names in main.tf to be globally unique before applying.
 
@@ -74,20 +92,79 @@ This infrastructure was imported from the live PlateAI environment with zero dow
 
 Example import commands used:
 
-```bash
-terraform import aws_lambda_function.food_processor FoodIdentifierProcessor
-terraform import aws_dynamodb_table.users users
-terraform import aws_dynamodb_table.meals meals
-terraform import aws_dynamodb_table.recipes recipes
-terraform import aws_dynamodb_table.daily_plans dailyPlans
-terraform import aws_dynamodb_table.conversations conversations
-terraform import aws_s3_bucket.photos foodidentifier-730980070158-photos
-terraform import aws_s3_bucket.frontend plateai-frontend-730980070158
-terraform import aws_api_gateway_rest_api.api s8w5yfkidb
-terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
-```
+    terraform import aws_lambda_function.food_processor FoodIdentifierProcessor
+    terraform import aws_dynamodb_table.users users
+    terraform import aws_dynamodb_table.meals meals
+    terraform import aws_dynamodb_table.recipes recipes
+    terraform import aws_dynamodb_table.daily_plans dailyPlans
+    terraform import aws_dynamodb_table.conversations conversations
+    terraform import aws_s3_bucket.photos foodidentifier-730980070158-photos
+    terraform import aws_s3_bucket.frontend plateai-frontend-730980070158
+    terraform import aws_api_gateway_rest_api.api s8w5yfkidb
+    terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
 
 26 resources total. Complete state alignment between Terraform and production AWS environment.
+
+---
+
+## CI/CD Troubleshooting
+
+Issues encountered and resolved while setting up CI/CD pipeline:
+
+|
+ Error 
+|
+ Cause 
+|
+ Fix 
+|
+|
+-------
+|
+-------
+|
+-----
+|
+|
+ lambda.zip not found 
+|
+ Terraform expected local zip file for Lambda deployment 
+|
+ Changed to S3 source with ignore_changes lifecycle 
+|
+|
+ DynamoDB TTL validation 
+|
+ TTL config in code didn't match production settings 
+|
+ Updated TTL block to match production 
+|
+|
+ API Gateway root resource update 
+|
+ Cannot update path_part on root resource 
+|
+ Added ignore_changes for path_part and parent_id 
+|
+|
+ TLSv1.3_2025 not supported 
+|
+ Terraform AWS provider doesn't support newest TLS version 
+|
+ Changed to TLSv1.2_2021 with ignore_changes 
+|
+|
+ website_endpoint deprecated 
+|
+ S3 attribute deprecated in newer provider versions 
+|
+ Warning only, functionality unaffected 
+|
+
+**Key Learnings:**
+- Use lifecycle ignore_changes when Terraform code can't match production exactly
+- Remote state in S3 is required for CI/CD pipelines to manage state properly
+- Import existing resources carefully and verify state matches before enabling auto-apply
 
 ---
 
@@ -111,7 +188,7 @@ terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
 - Demonstrates ability to bring existing cloud resources under IaC management
 
 **Cost Optimization**
-- Resources selected for $1-3/month operation
+- Resources selected for \$1-3/month operation
 - On-demand pricing: DynamoDB, Lambda, Bedrock
 - Lambda right-sized: 128MB memory
 - DynamoDB TTL: Automatic cleanup of 90-day-old conversation data
@@ -120,17 +197,15 @@ terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
 
 ## Repository Structure
 
-```
-.
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-├── main.tf
-├── .terraform.lock.hcl
-├── .gitignore
-├── deploy.sh
-└── README.md
-```
+    .
+    ├── .github/
+    │   └── workflows/
+    │       └── ci.yml
+    ├── main.tf
+    ├── .terraform.lock.hcl
+    ├── .gitignore
+    ├── deploy.sh
+    └── README.md
 
 ---
 
@@ -141,11 +216,13 @@ terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
 - Automated infrastructure deployment on merge
 - Remote state management with S3
 - Safe PR workflow with plan only
+- Troubleshooting and resolving pipeline failures
 
 **Terraform Expertise**
 - Multi-service AWS infrastructure definition
 - Resource import from existing production environments
 - State management for live systems
+- Lifecycle management with ignore_changes
 - Zero-drift configuration
 
 **Cloud Architecture**
@@ -180,16 +257,3 @@ terraform import aws_cloudfront_distribution.cdn E2D4G621UQDPM6
 
 **Last Updated:** February 2026
 **Status:** Production-Ready
-```
-
----
-
-## What I Fixed
-
-| Issue | Fix |
-|-------|-----|
-| Bash code block bleeding | Closed code blocks properly |
-| Simplified formatting | Removed nested backticks |
-| Cleaner structure | Less clutter |
-
----
