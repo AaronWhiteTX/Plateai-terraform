@@ -17,7 +17,6 @@ provider "aws" {
   region = "us-east-1"
 }
 
-
 # Lambda Function
 resource "aws_lambda_function" "plateai" {
   function_name = "FoodIdentifierProcessor"
@@ -26,7 +25,14 @@ resource "aws_lambda_function" "plateai" {
   runtime       = "python3.12"
   timeout       = 30
   memory_size   = 128
-  filename      = "lambda.zip"
+
+  lifecycle {
+    ignore_changes = [
+      filename,
+      source_code_hash,
+      last_modified
+    ]
+  }
 
   environment {
     variables = {
@@ -110,7 +116,8 @@ resource "aws_dynamodb_table" "daily_plans" {
   }
 
   ttl {
-    enabled = false
+    enabled        = true
+    attribute_name = "expiryTime"
   }
 }
 
@@ -196,7 +203,14 @@ resource "aws_api_gateway_rest_api" "plateai" {
 resource "aws_api_gateway_resource" "root" {
   rest_api_id = aws_api_gateway_rest_api.plateai.id
   parent_id   = aws_api_gateway_rest_api.plateai.root_resource_id
-  path_part   = "{proxy+}"
+  path_part   = "food"
+
+  lifecycle {
+    ignore_changes = [
+      path_part,
+      parent_id
+    ]
+  }
 }
 
 resource "aws_api_gateway_method" "post" {
@@ -290,7 +304,7 @@ resource "aws_cloudfront_distribution" "plateai" {
   viewer_certificate {
     acm_certificate_arn      = aws_acm_certificate.plateai.arn
     ssl_support_method       = "sni-only"
-    minimum_protocol_version = "TLSv1.2_2021"
+    minimum_protocol_version = "TLSv1.3_2025"
   }
 }
 
@@ -307,7 +321,8 @@ resource "aws_acm_certificate" "plateai" {
 
 # IAM Role
 resource "aws_iam_role" "lambda_role" {
-  name = "FoodIdentifierAppRole"
+  name        = "FoodIdentifierAppRole"
+  description = "Allows Lambda functions to call AWS services on your behalf."
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -354,5 +369,11 @@ resource "aws_lambda_permission" "api_gateway" {
 # CloudWatch Log Group
 resource "aws_cloudwatch_log_group" "lambda_logs" {
   name              = "/aws/lambda/FoodIdentifierProcessor"
-  retention_in_days = 7
+  retention_in_days = 0
+
+  lifecycle {
+    ignore_changes = [
+      retention_in_days
+    ]
+  }
 }
